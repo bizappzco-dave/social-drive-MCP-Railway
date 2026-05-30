@@ -1,0 +1,30 @@
+[Unit]
+Description=SocialDrive AI MCP Server
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=dpmcg
+WorkingDirectory=/home/dpmcg/image-analyzer-mcp
+ExecStart=/usr/bin/python3 /home/dpmcg/image-analyzer-mcp/simple_http_server.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mcp-server
+
+# Environment variables (or use EnvironmentFile)
+Environment="PORT=8765"
+Environment="HOST=0.0.0.0"
+Environment="OLLAMA_BASE_URL=http://localhost:11434"
+Environment="MODEL=llama3.2:latest"
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/dpmcg/image-analyzer-mcp/logs
+
+[Install]
+WantedBy=multi-user.target
