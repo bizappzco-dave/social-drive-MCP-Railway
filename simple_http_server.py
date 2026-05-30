@@ -21,7 +21,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 PORT = int(os.getenv('PORT', '8765'))
-OLLAMA_URL = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
+# Use Railway env var directly (don't fallback to localhost)
+OLLAMA_URL = os.getenv('OLLAMA_BASE_URL') or 'http://localhost:11434'
 MODEL = os.getenv('OLLAMA_MODEL', 'llama3.2')
 
 
