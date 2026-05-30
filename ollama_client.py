@@ -13,8 +13,9 @@ from PIL import Image
 import io
 from dotenv import load_dotenv
 
-# 加载环境变量
-load_dotenv()
+# Load environment variables (but don't override Railway env vars)
+if os.path.exists('.env') and not os.getenv('RAILWAY_ENVIRONMENT'):
+    load_dotenv()
 
 # 获取日志记录器
 logger = logging.getLogger(__name__)
