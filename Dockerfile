@@ -2,21 +2,21 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies (curl for healthcheck)
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies (minimal - no fastmcp)
+RUN pip install --no-cache-dir requests pillow python-dotenv
 
-# Copy application code
-COPY *.py .
+# Copy only the server file needed
+COPY simple_http_server.py .
+COPY ollama_client.py .
 
 # Create logs directory
 RUN mkdir -p /app/logs
 
-# Set environment variables
+# Railway injects PORT automatically
 ENV PYTHONUNBUFFERED=1
 
-# Run the server (Railway injects PORT automatically)
+# Run the server
 CMD ["python3", "simple_http_server.py"]
