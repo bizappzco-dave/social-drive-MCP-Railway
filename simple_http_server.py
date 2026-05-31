@@ -391,6 +391,18 @@ Respond in JSON format:
             template_match = data.get('template_match')
             industry = data.get('industry', 'barber')
             count = data.get('count', 15)
+
+            # template_match may be a raw string (from /template/match response field) or a dict
+            if isinstance(template_match, str):
+                try:
+                    import re
+                    json_match = re.search(r'\{.*\}', template_match, re.DOTALL)
+                    if json_match:
+                        template_match = json.loads(json_match.group())
+                    else:
+                        template_match = {"scene_type": "general", "key_elements": [], "main_subject": template_match, "suggested_templates": []}
+                except Exception:
+                    template_match = {"scene_type": "general", "key_elements": [], "main_subject": str(template_match), "suggested_templates": []}
             
             if not image_path and not image_base64:
                 self.send_json({"error": "image_path or image_base64 required"}, 400)
