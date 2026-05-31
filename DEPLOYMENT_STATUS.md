@@ -1,153 +1,132 @@
-# SocialDrive AI - Railway MCP Deployment Status
-**Date:** May 30, 2026  
-**Session End:** 18:50 IST
+# SocialDrive AI - Railway Deployment Status
+
+**Last Updated:** May 31, 2026 — FULLY OPERATIONAL ✅
 
 ---
 
-## 🎯 Goal
-Deploy self-hosted Ollama + MCP server on Railway to replace Ollama Cloud API (~€40-50/month → ~€5-10/month).
+## Live URLs
+
+| Service | URL | Status |
+|---------|-----|--------|
+| Ollama (Railway) | https://ollama-production-6ab6.up.railway.app | ✅ Running — llama3.2:latest |
+| MCP Server (Railway) | https://social-drive-mcp-railway-production-cb81.up.railway.app | ✅ Running — healthy |
+| Frontend (Vercel) | https://socialdrive-ai.vercel.app | ✅ Deployed — NEXT_PUBLIC_MCP_URL set |
 
 ---
 
-## ✅ Completed
+## Railway Project Details
 
-### 1. Ollama Service (Railway)
-- **Status:** ✅ RUNNING
-- **URL:** `https://ollama-production-6ab6.up.railway.app`
-- **Model:** `llama3.2:latest` (2.0GB)
-- **Project:** `aware-simplicity` → `distinguished-elegance` service
-- **Image:** `ollama/ollama:latest` (official Railway template)
-- **Test:** `curl https://ollama-production-6ab6.up.railway.app/api/tags` ✅ Returns model list
+**Project:** aware-simplicity  
+**Project ID:** afa5edc7-d90e-4d08-99e7-aaf3b70e8865  
+**Environment ID:** 9e9dfaff-f582-41c0-b592-675907870e25
 
-### 2. MCP Server Code
-- **Repo:** `bizappzco-dave/social-drive-MCP-Railway`
-- **Files:** 
-  - `Dockerfile` ✅ (Python 3.11, runs `simple_http_server.py`)
-  - `railway.toml` ✅ (forces Dockerfile deployment)
-  - `simple_http_server.py` ✅ (HTTP server, port 8765)
-  - `ollama_client.py` ✅ (connects to Ollama URL)
-  - `.dockerignore` ✅ (excludes .env from build)
-- **Environment Variables Needed:**
-  ```
-  OLLAMA_BASE_URL=https://ollama-production-6ab6.up.railway.app
-  OLLAMA_MODEL=llama3.2
-  PORT=8765
-  ```
+| Service Name | Service ID | Role |
+|---|---|---|
+| distinguished-elegance | 11cc5683-b85b-459d-bf56-3ea5633e9ab3 | Ollama (Railway template) |
+| social-drive-MCP-Railway | 5201592b-fefb-4953-9a6f-044ec07e0e1b | MCP HTTP server (GitHub) |
 
-### 3. Local Ollama (Reference)
-- **Version:** 0.18.3
-- **Status:** Running as systemd service
-- **Models:** llama3.2:latest, bizappzco/SocialDriveAI:latest, qwen3.5:cloud, qwen2.5:7b
-- **Port:** 11434
-- **Check:** `ollama list`, `systemctl status ollama`
+**IMPORTANT:** `distinguished-elegance` = Ollama service (not MCP). Railway auto-generates random names.
+Verify by curling `/` — "Ollama is running" = Ollama, JSON = MCP.
 
 ---
 
-## ⏳ In Progress
+## GitHub Repo
 
-### MCP Server Deployment (Railway)
-- **Status:** ⚠️ BLOCKED - Railway CLI auth issues with GitHub
-- **Service:** `mcp-server` created in `aware-simplicity` project
-- **Problem:** Railway deploying raw `python:3.11-slim` image instead of using Dockerfile
-- **Solution Created:** Added `railway.toml` to force Dockerfile deployment
-- **Next Step:** Manual deployment via Railway dashboard
+**MCP Server:** https://github.com/bizappzco-dave/social-drive-MCP-Railway  
+**Local path:** `/home/dpmcg/image-analyzer-mcp/`
+
+Commits in order:
+- `62b7cb5` - Don't load .env on Railway
+- `71ed50f` - Use Railway OLLAMA_BASE_URL env var
+- `9b965f8` - Add .dockerignore
+- `5538389` - Add railway.toml (force Dockerfile build)
+- `b3d5a7b` - Deployment status backup
+- `6b187ba` - Fix Dockerfile: add curl, remove hardcoded PORT/EXPOSE
+- `8b0a310` - Remove healthcheck from railway.toml
+- `46dda55` - Minimal Dockerfile: explicit deps, copy only needed files
+- `a105970` - Fix: parse template_match string to dict in generate-captions ← LATEST
 
 ---
 
-## 📋 Tomorrow's Steps (Railway Dashboard)
+## Environment Variables
 
-### 1. Go to Railway Project
-https://railway.com/project/afa5edc7-d90e-4d08-99e7-aaf3b70e8865
-
-### 2. Create New Service from GitHub
-- Click **"New"** → **"GitHub Repo"**
-- Select: `bizappzco-dave/social-drive-MCP-Railway`
-- Railway should auto-detect `railway.toml` + `Dockerfile`
-
-### 3. If Build Method Shows "Start Command":
-- Click service → **"Settings"** tab
-- Scroll to **"Build"** section
-- Click **"Edit"**
-- Change **"Build Method"** to **"Dockerfile"**
-- Click **"Save"**
-
-### 4. Add Environment Variables
-Click **"Variables"** tab → Add:
+**Railway MCP Service (social-drive-MCP-Railway):**
 ```
 OLLAMA_BASE_URL=https://ollama-production-6ab6.up.railway.app
 OLLAMA_MODEL=llama3.2
-PORT=8765
+```
+Set via Railway dashboard → service → Variables tab.
+
+**Vercel (socialdrive-ai):**
+```
+NEXT_PUBLIC_MCP_URL=https://social-drive-mcp-railway-production-cb81.up.railway.app
 ```
 
-### 5. Deploy
-- Click **"Deployments"** → **"Deploy from GitHub"**
-- Wait ~2-3 minutes for build
+---
 
-### 6. Generate Domain
-- Click **"Settings"** → **"Networking"**
-- Click **"Generate Domain"**
-- Copy URL (e.g., `https://social-drive-mcp-production.up.railway.app`)
+## MCP Endpoints
 
-### 7. Test
 ```bash
-# Test health endpoint
-curl https://your-mcp-domain.up.railway.app/health
+# Health check
+curl https://social-drive-mcp-railway-production-cb81.up.railway.app/health
+# Returns: {"status":"healthy","ollama_url":"https://ollama-production-6ab6.up.railway.app","model":"llama3.2"}
 
-# Expected response:
-{"status": "healthy", "ollama_url": "https://ollama-production-6ab6.up.railway.app", "model": "llama3.2"}
+# Ollama status
+curl https://social-drive-mcp-railway-production-cb81.up.railway.app/ollama/status
+# Returns: {"ollama_healthy":true,"available_models":[{"name":"llama3.2:latest",...}]}
+
+# Template match (POST)
+curl -X POST https://social-drive-mcp-railway-production-cb81.up.railway.app/template/match \
+  -H "Content-Type: application/json" \
+  -d '{"image_base64": "...", "industry": "barber"}'
+
+# Generate captions (POST)
+curl -X POST https://social-drive-mcp-railway-production-cb81.up.railway.app/generate-captions \
+  -H "Content-Type: application/json" \
+  -d '{"image_base64":"...","template_match":"...or {}...","industry":"barber","count":3}'
 ```
 
-### 8. Update Frontend (I'll Do This)
-Once you give me the MCP server URL, I'll:
-- Update `src/app/upload/[token]/simple-page.tsx`
-- Update `src/app/upload/[token]/pro-page.tsx`
-- Deploy frontend to Vercel
-- Test end-to-end flow
+---
+
+## Known Bug Fixed
+
+**template_match string-to-dict (fixed in a105970)**
+
+The `/template/match` endpoint returns `{"success":true,"response":"...json string..."}`.
+If you pass the raw `response` string as `template_match` to `/generate-captions`, it previously
+crashed with `'str' object has no attribute 'get'`.
+
+Fixed: the handler now auto-parses string → dict via regex JSON extraction.
 
 ---
 
-## 🚨 Troubleshooting
+## Redeploy Procedure
 
-### Container Exits Immediately
-**Cause:** Railway not using Dockerfile  
-**Fix:** Settings → Build → Change to "Dockerfile" → Save → Redeploy
+```bash
+# 1. Make code change in /home/dpmcg/image-analyzer-mcp/
+# 2. Push to GitHub
+cd /home/dpmcg/image-analyzer-mcp && git add . && git commit -m "..." && git push origin main
 
-### Health Check Fails
-**Cause:** Ollama URL not set or Ollama service down  
-**Fix:** Check variables, test Ollama: `curl https://ollama-production-6ab6.up.railway.app/api/tags`
+# 3. Trigger Railway redeploy via API
+TOKEN="IfkppiwbQEQJfuDIIfA_qtxd655xPIumF6RP4j2t0a_"
+curl -s -X POST https://backboard.railway.app/graphql/v2 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"mutation { serviceInstanceRedeploy(serviceId: \"5201592b-fefb-4953-9a6f-044ec07e0e1b\", environmentId: \"9e9dfaff-f582-41c0-b592-675907870e25\") }"}' 
 
-### Build Fails
-**Cause:** Missing dependencies  
-**Fix:** Check build logs, verify `requirements.txt` in repo root
+# 4. Wait ~90 seconds, test health
+curl https://social-drive-mcp-railway-production-cb81.up.railway.app/health
+```
 
----
-
-## 📊 Cost Savings
-
-| Service | Before | After | Savings |
-|---------|--------|-------|---------|
-| Ollama Cloud API | ~€40-50/month | €0 (self-hosted) | 100% |
-| Railway Hosting | N/A | ~€5-10/month | - |
-| **Total** | **€40-50/month** | **€5-10/month** | **75-80%** |
+Note: Railway API sometimes times out on mutations — use the dashboard as fallback.
 
 ---
 
-## 🔗 Key URLs
+## Cost
 
-- **Ollama Service:** https://ollama-production-6ab6.up.railway.app
-- **MCP Server:** TBD (deploy tomorrow)
-- **Railway Project:** https://railway.com/project/afa5edc7-d90e-4d08-99e7-aaf3b70e8865
-- **GitHub Repo:** https://github.com/bizappzco-dave/social-drive-MCP-Railway
-
----
-
-## 📝 Notes
-
-- Railway CLI has GitHub auth issues - use dashboard for deployment
-- `railway.toml` forces Dockerfile deployment (committed to repo)
-- Two services needed: Ollama (✅ done) + MCP server (⏳ pending)
-- Frontend currently points to `http://localhost:8765` - will update after MCP deploy
-
----
-
-**Next Session:** Resume from "Tomorrow's Steps" above. Once MCP server URL is ready, update frontend and deploy to Vercel.
+| | Before | After |
+|---|---|---|
+| Ollama Cloud API | ~€40-50/month | €0 |
+| Railway hosting | €0 | ~€5-10/month |
+| **Total** | **~€50/month** | **~€5-10/month** |
+| **Savings** | | **~75-80%** |
