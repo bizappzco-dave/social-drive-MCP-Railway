@@ -116,11 +116,6 @@ Hashtags: Use industry-specific relevant tags."""
         
         prompt = f"""{industry_context}
 
-Image Analysis:
-- Scene Type: {scene_type}
-- Key Elements: {', '.join(key_elements)}
-- Suggested Style: {suggested_templates[0] if suggested_templates else 'Engaging social post'}
-
 Generate {count} UNIQUE social media caption variations. Each should:
 1. Be 2-4 sentences (Instagram/Facebook length)
 2. Include a hook/opening line
@@ -128,14 +123,10 @@ Generate {count} UNIQUE social media caption variations. Each should:
 4. End with a call-to-action or question
 5. Include 5-8 relevant hashtags
 
-Respond in JSON format:
-{{
-  "captions": [
-    {{"text": "caption 1", "hashtags": ["#tag1", "#tag2"]}},
-    {{"text": "caption 2", "hashtags": ["#tag1", "#tag3"]}}
-  ]
-}}
+Respond ONLY with valid JSON in this exact format:
+{{"captions": [{{"text": "caption here", "hashtags": ["#tag1", "#tag2"]}}]}}
 
+Do NOT include any other text, explanations, or markdown formatting.
 Make each caption distinct - vary the tone, hooks, and CTAs."""
 
         # Call Ollama
