@@ -195,6 +195,47 @@ Make each caption distinct - vary the tone, hooks, and CTAs."""
         except json.JSONDecodeError as e:
             logger.error(f"JSON parse error: {e}")
             logger.error(f"Response text: {response_text[:500]}")
+            
+            # Try to recover by finding and extracting valid JSON
+            try:
+                # Remove markdown code blocks if present
+                cleaned = response_text.replace('```json', '').replace('```', '')
+                
+                # Try to find JSON array pattern
+                import re
+                captions_match = re.search(r'\[.*\]', cleaned, re.DOTALL)
+                if captions_match:
+                    captions_json = captions_match.group()
+                    # Try to fix common JSON errors
+                    captions_json = captions_json.replace('\n', ' ').replace('\r', ' ')
+                    # Remove trailing commas before ] or }
+                    captions_json = re.sub(r',\s*([\]\}])', r'\1', captions_json)
+                    # Add missing quotes around keys
+                    captions_json = re.sub(r'([{,]\s*)(\w+)(\s*:)', r'\1"\2"\3', captions_json)
+                    
+                    parsed = json.loads(captions_json)
+                    if isinstance(parsed, list):
+                        formatted_captions = []
+                        for cap in parsed:
+                            if isinstance(cap, dict):
+                                text = cap.get('text', cap.get('caption', ''))
+                                tags = cap.get('hashtags', [])
+                                if text:
+                                    formatted_captions.append({
+                                        "caption": text.strip(),
+                                        "hashtags": tags if tags else []
+                                    })
+                        
+                        if formatted_captions:
+                            logger.info(f"✓ Recovered {len(formatted_captions)} captions from malformed JSON")
+                            return {
+                                "success": True,
+                                "captions": formatted_captions,
+                                "model": MODEL
+                            }
+            except Exception as recovery_err:
+                logger.error(f"Recovery failed: {recovery_err}")
+            
             return {"success": False, "error": f"Failed to parse response: {e}"}
             
     except Exception as e:
