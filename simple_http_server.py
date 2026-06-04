@@ -39,7 +39,7 @@ logger.info(f"🔑 Last 8 chars: ...{ANTHROPIC_API_KEY[-8:]}")
 ANTHROPIC_API_KEY=ANTHROPIC_API_KEY.strip()
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
-MODEL = "claude-3-5-sonnet-20241022"  # Best for images + JSON
+MODEL = "claude-sonnet-4-5-20250929"  # Latest Claude Sonnet
 
 logger.info(f"✅ MCP Server starting on port {PORT}")
 logger.info(f"✅ Using Claude model: {MODEL}")
@@ -248,6 +248,19 @@ def template_match(image_base64, industry='barber'):
     try:
         logger.info("🔍 Analyzing image for template matching...")
         
+        # Strip data URL prefix if present
+        if image_base64 and ',' in image_base64:
+            image_base64 = image_base64.split(',', 1)[1]
+            logger.info("📷 Stripped data URL prefix")
+        
+        # Determine media type
+        media_type = "image/jpeg"
+        if image_base64 and image_base64.startswith('data:'):
+            if 'png' in image_base64.split(',')[0]:
+                media_type = "image/png"
+            elif 'gif' in image_base64.split(',')[0]:
+                media_type = "image/gif"
+        
         prompt = f"""Analyze this {industry} business image and identify:
 1. Scene type (e.g., 'training', 'before/after', 'product showcase')
 2. Key elements visible
@@ -276,7 +289,7 @@ No other text or markdown."""
                             "type": "image",
                             "source": {
                                 "type": "base64",
-                                "media_type": "image/jpeg",
+                                "media_type": media_type,
                                 "data": image_base64
                             }
                         },
