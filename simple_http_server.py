@@ -23,10 +23,20 @@ logger = logging.getLogger(__name__)
 PORT = int(os.getenv('PORT', '8765'))
 
 # Initialize Claude client (API key from Railway env)
-ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
+ANTHROPIC_API_KEY=os.getenv('ANTHROPIC_API_KEY', '')
 if not ANTHROPIC_API_KEY:
     logger.error("❌ ANTHROPIC_API_KEY not set in environment variables!")
     sys.exit(1)
+
+# Debug: Show key details (not the full key!)
+logger.info(f"🔑 API Key length: {len(ANTHROPIC_API_KEY)} chars")
+logger.info(f"🔑 API Key stripped: {len(ANTHROPIC_API_KEY.strip())} chars")
+logger.info(f"🔑 Has whitespace: {ANTHROPIC_API_KEY != ANTHROPIC_API_KEY.strip()}")
+logger.info(f"🔑 First 8 chars: {ANTHROPIC_API_KEY[:8]}")
+logger.info(f"🔑 Last 8 chars: ...{ANTHROPIC_API_KEY[-8:]}")
+
+# Strip any whitespace/newlines
+ANTHROPIC_API_KEY=ANTHROPIC_API_KEY.strip()
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 MODEL = "claude-3-5-sonnet-20241022"  # Best for images + JSON
