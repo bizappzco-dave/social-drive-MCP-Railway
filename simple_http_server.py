@@ -118,6 +118,19 @@ def generate_captions(image_base64, template_match, industry, count=3):
     try:
         logger.info(f"📸 Generating {count} captions with Claude...")
         
+        # Strip data URL prefix if present
+        if image_base64 and ',' in image_base64:
+            image_base64 = image_base64.split(',', 1)[1]
+            logger.info("📷 Stripped data URL prefix from caption generation")
+        
+        # Determine media type
+        media_type = "image/jpeg"
+        if image_base64 and image_base64.startswith('data:'):
+            if 'png' in image_base64.split(',')[0]:
+                media_type = "image/png"
+            elif 'gif' in image_base64.split(',')[0]:
+                media_type = "image/gif"
+        
         # Build industry-specific context
         if industry == 'barber':
             industry_context = """You are writing social media captions for No Label Academy, a barber training academy.
@@ -175,7 +188,7 @@ Make each caption distinct - vary the tone, hooks, and CTAs."""
                             "type": "image",
                             "source": {
                                 "type": "base64",
-                                "media_type": "image/jpeg",
+                                "media_type": media_type,
                                 "data": image_base64
                             }
                         },
