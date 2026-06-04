@@ -284,39 +284,56 @@ No other text or markdown."""
 
 class MCPHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        content_length = int(self.headers.get('Content-Length', 0))
-        body = self.rfile.read(content_length).decode('utf-8')
-        
         try:
-            data = json.loads(body)
-        except json.JSONDecodeError:
-            self.send_response(400)
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            
+            logger.info(f"📥 POST {self.path} - {len(body)} bytes")
+            
+            try:
+                data = json.loads(body)
+            except json.JSONDecodeError:
+                logger.error("❌ Invalid JSON in request")
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Invalid JSON"}).encode())
+                return
+            
+            # Route requests
+            if self.path == '/generate-captions':
+                logger.info("🎨 Generating captions...")
+                result = generate_captions(
+                    image_base64=data.get('image_base64'),
+                    template_match=data.get('template_match', {}),
+                    industry=data.get('industry', 'barber'),
+                    count=data.get('count', 3)
+                )
+            elif self.path == '/template/match':
+                logger.info("🔍 Matching template...")
+                result = template_match(
+                    image_base64=data.get('image_base64'),
+                    industry=data.get('industry', 'barber')
+                )
+            else:
+                logger.error(f"❌ Unknown endpoint: {self.path}")
+                result = {"error": "Unknown endpoint"}
+            
+            logger.info(f"📤 Response: success={result.get('success', False)}")
+            
+            self.send_response(200 if result.get('success', False) else 400)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(result).encode())
+        except Exception as e:
+            logger.error(f"❌ POST handler error: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            self.send_response(500)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({"error": "Invalid JSON"}).encode())
-            return
-        
-        # Route requests
-        if self.path == '/generate-captions':
-            result = generate_captions(
-                image_base64=data.get('image_base64'),
-                template_match=data.get('template_match', {}),
-                industry=data.get('industry', 'barber'),
-                count=data.get('count', 3)
-            )
-        elif self.path == '/template/match':
-            result = template_match(
-                image_base64=data.get('image_base64'),
-                industry=data.get('industry', 'barber')
-            )
-        else:
-            result = {"error": "Unknown endpoint"}
-        
-        self.send_response(200 if result.get('success', False) else 400)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(json.dumps(result).encode())
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
     
     def do_GET(self):
         if self.path == '/health':
