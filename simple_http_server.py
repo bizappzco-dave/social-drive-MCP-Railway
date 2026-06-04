@@ -140,6 +140,7 @@ Make each caption distinct - vary the tone, hooks, and CTAs."""
         response = client.messages.create(
             model=MODEL,
             max_tokens=2048,
+            timeout=30.0,  # 30 second timeout
             messages=[
                 {
                     "role": "user",
@@ -240,6 +241,7 @@ No other text or markdown."""
         response = client.messages.create(
             model=MODEL,
             max_tokens=1024,
+            timeout=30.0,  # 30 second timeout
             messages=[
                 {
                     "role": "user",
