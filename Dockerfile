@@ -6,7 +6,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies (minimal - no fastmcp)
-RUN pip install --no-cache-dir requests pillow python-dotenv
+RUN pip install --no-cache-dir requests pillow anthropic
 
 # Copy only the server file needed
 COPY simple_http_server.py .
