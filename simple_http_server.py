@@ -36,6 +36,20 @@ logger.info(f"✅ Using Claude model: {MODEL}")
 logger.info(f"🔑 API Key configured: {bool(ANTHROPIC_API_KEY)}")
 logger.info(f"🔑 API Key starts with: {ANTHROPIC_API_KEY[:10] if ANTHROPIC_API_KEY else 'None'}...")
 
+# Test Claude API connectivity on startup
+try:
+    test_client = Anthropic(api_key=ANTHROPIC_API_KEY)
+    test_response = test_client.messages.create(
+        model=MODEL,
+        max_tokens=10,
+        messages=[{"role": "user", "content": "Hi"}],
+        timeout=10.0
+    )
+    logger.info(f"✅ Claude API connectivity test PASSED")
+except Exception as e:
+    logger.error(f"❌ Claude API connectivity test FAILED: {e}")
+    logger.error("⚠️ Server will start but Claude calls will fail!")
+
 
 def encode_image(image_path):
     """Encode image to base64 from file path"""
