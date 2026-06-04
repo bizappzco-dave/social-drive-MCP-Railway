@@ -33,6 +33,8 @@ MODEL = "claude-3-5-sonnet-20241022"  # Best for images + JSON
 
 logger.info(f"✅ MCP Server starting on port {PORT}")
 logger.info(f"✅ Using Claude model: {MODEL}")
+logger.info(f"🔑 API Key configured: {bool(ANTHROPIC_API_KEY)}")
+logger.info(f"🔑 API Key starts with: {ANTHROPIC_API_KEY[:10] if ANTHROPIC_API_KEY else 'None'}...")
 
 
 def encode_image(image_path):
