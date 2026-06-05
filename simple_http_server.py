@@ -372,13 +372,15 @@ class MCPHandler(BaseHTTPRequestHandler):
             
             # Route requests
             if self.path == '/generate-captions':
-                logger.info("🎨 Generating captions...")
+                brief_text = data.get('brief_text')
+                logger.info(f"🎨 Generating captions... brief_text={brief_text!r}")
+                logger.info(f"📝 Request data keys: {list(data.keys())}")
                 result = generate_captions(
                     image_base64=data.get('image_base64'),
                     template_match=data.get('template_match', {}),
                     industry=data.get('industry', 'barber'),
                     count=data.get('count', 3),
-                    brief_text=data.get('brief_text')  # Pass brief text
+                    brief_text=brief_text
                 )
             elif self.path == '/template/match':
                 logger.info("🔍 Matching template...")
