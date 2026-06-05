@@ -150,15 +150,24 @@ Hashtags: Use industry-specific relevant tags."""
         key_elements = template_match.get('key_elements', [])
         
         # Build prompt
-        brief_instruction = f"\n\nIMPORTANT PROMOTION TO INCLUDE: {brief_text}\nMake sure to naturally incorporate this offer into each caption." if brief_text else ""
+        brief_instruction = ""
+        if brief_text:
+            brief_instruction = f"""
+
+🚨 CRITICAL: You MUST include this promotion in EVERY caption:
+   "{brief_text}"
+
+Make it feel natural - weave it into the caption as a call-to-action or exciting news.
+Example: "Ready to start your barber journey? Free places for the first 10 to signup - DM now!"
+"""
         
         prompt = f"""{industry_context}
 
-Analyze this image and generate {count} UNIQUE social media caption variations.
+Analyze this image and generate {count} UNIQUE social media caption variations.{brief_instruction}
 
 Image context:
 - Scene type: {scene_type}
-- Key elements: {', '.join(key_elements) if key_elements else 'Various elements visible'}{brief_instruction}
+- Key elements: {', '.join(key_elements) if key_elements else 'Various elements visible'}
 
 Each caption should:
 1. Be 2-4 sentences (Instagram/Facebook length)
@@ -166,7 +175,7 @@ Each caption should:
 3. Reference the image content naturally
 4. End with a call-to-action or question
 5. Include 5-8 relevant hashtags
-6. {f'NATURALLY incorporate the promotion: "{brief_text}"' if brief_text else 'Be engaging and shareable'}
+6. {f'MUST INCLUDE this promotion naturally: "{brief_text}"' if brief_text else 'Be engaging and shareable'}
 
 Respond ONLY with valid JSON in this exact format:
 {{
