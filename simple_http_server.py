@@ -149,44 +149,45 @@ Hashtags: Use industry-specific relevant tags."""
         scene_type = template_match.get('scene_type', 'general')
         key_elements = template_match.get('key_elements', [])
         
-        # Build prompt
+        # Build prompt - brief text MUST be at the START (Claude pays more attention to beginning)
         brief_instruction = ""
         if brief_text:
             brief_instruction = f"""
+🚨🚨🚨 CRITICAL REQUIREMENT - DO NOT IGNORE:
+You MUST include this EXACT promotion in EVERY caption: "{brief_text}"
 
-🚨 CRITICAL: You MUST include this promotion in EVERY caption:
-   "{brief_text}"
+Write the promotion naturally into each caption - make it the call-to-action or exciting news at the end.
+Example integration: "Ready to start? {brief_text} - DM us now!"
 
-Make it feel natural - weave it into the caption as a call-to-action or exciting news.
-Example: "Ready to start your barber journey? Free places for the first 10 to signup - DM now!"
+DO NOT write generic captions. DO NOT forget the promotion. EVERY caption MUST include: {brief_text}
 """
         
         prompt = f"""{industry_context}
-
-Analyze this image and generate {count} UNIQUE social media caption variations.{brief_instruction}
+{brief_instruction}
+Analyze this image and generate EXACTLY {count} UNIQUE social media caption variations.
 
 Image context:
 - Scene type: {scene_type}
 - Key elements: {', '.join(key_elements) if key_elements else 'Various elements visible'}
 
-Each caption should:
-1. Be 2-4 sentences (Instagram/Facebook length)
-2. Include a hook/opening line
-3. Reference the image content naturally
-4. End with a call-to-action or question
-5. Include 5-8 relevant hashtags
-6. {f'MUST INCLUDE this promotion naturally: "{brief_text}"' if brief_text else 'Be engaging and shareable'}
+CAPTION REQUIREMENTS (MANDATORY):
+1. Length: 2-4 sentences, 40-80 words EACH (do NOT truncate - write complete captions)
+2. Structure: Hook → Image reference → Call-to-action
+3. {f'PROMOTION (REQUIRED): Include "{brief_text}" naturally in EVERY caption' if brief_text else 'Call-to-action: End with engaging question or CTA'}
+4. Hashtags: 5-8 relevant barber hashtags
+5. Make each caption DISTINCT - different hooks, different CTAs, different angles
 
-Respond ONLY with valid JSON in this exact format:
+RESPONSE FORMAT - JSON ONLY:
 {{
   "captions": [
-    {{"caption": "caption text here", "hashtags": ["#tag1", "#tag2", "#tag3"]}},
-    {{"caption": "another caption", "hashtags": ["#tag4", "#tag5"]}}
+    {{"caption": "COMPLETE caption text here - do not truncate", "hashtags": ["#tag1", "#tag2"]}},
+    {{"caption": "Another COMPLETE caption", "hashtags": ["#tag3", "#tag4"]}}
   ]
 }}
 
-Do NOT include any other text, explanations, or markdown formatting.
-Make each caption distinct - vary the tone, hooks, and CTAs."""
+⚠️ IMPORTANT: Write COMPLETE captions. Do NOT use "..." or truncate. Do NOT write generic captions. {f'Include "{brief_text}" in EVERY caption.' if brief_text else ''}
+
+Respond ONLY with the JSON. No markdown. No explanations."""
         
         # Call Claude API with image
         logger.info(f"🤖 Calling Claude API...")
