@@ -177,12 +177,12 @@ Image context:
 - Key elements: {', '.join(key_elements) if key_elements else 'Various elements visible'}
 
 CAPTION REQUIREMENTS (MANDATORY):
-1. Length: 1-2 sentences, 25-40 words EACH (MUST fit under 150 characters to leave room for hashtags)
-2. Structure: Hook with promotion → Brief image reference → Short CTA
-3. PROMOTION (REQUIRED): Include "{brief_text}" in the FIRST sentence as the opening hook
-4. Hashtags: 5-8 relevant barber hashtags
-5. Make each caption DISTINCT - different hooks, different CTAs, different angles
-6. TOTAL caption + hashtags must be under 280 characters
+1. Length: 3-5 sentences, 60-100 words (Instagram supports 2,200 chars - aim for 400-600 for engagement)
+2. Structure: FIRST 125 chars must include hook + "{brief_text}" (before "more" cutoff), then expand with story/context
+3. PROMOTION (REQUIRED): Include "{brief_text}" in the FIRST sentence as the opening hook - must be visible before "more" button
+4. Hashtags: 8-12 relevant barber hashtags (place at end)
+5. Make each caption DISTINCT - different hooks, different storytelling angles
+6. Use line breaks for readability (avoid walls of text)
 
 RESPONSE FORMAT - JSON ONLY:
 {{
