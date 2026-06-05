@@ -118,8 +118,13 @@ def generate_captions(image_base64, template_match, industry, count=3, brief_tex
     """
     try:
         logger.info(f"📸 Generating {count} captions with Claude...")
+        logger.info(f"📝 brief_text received: {brief_text!r}")
+        logger.info(f"📝 brief_text type: {type(brief_text)}")
+        logger.info(f"📝 brief_text truthy: {bool(brief_text)}")
         if brief_text:
             logger.info(f"📝 Including brief text: {brief_text}")
+        else:
+            logger.warning("⚠️ NO BRIEF TEXT PROVIDED - captions will be generic!")
         
         # Strip data URL prefix if present
         if image_base64 and ',' in image_base64:
