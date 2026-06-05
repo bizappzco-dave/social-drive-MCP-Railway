@@ -103,7 +103,7 @@ def decode_base64_image(base64_string):
         return None
 
 
-def generate_captions(image_base64, template_match, industry, count=3):
+def generate_captions(image_base64, template_match, industry, count=3, brief_text=None):
     """Generate caption variations using Claude API
     
     Args:
@@ -111,12 +111,15 @@ def generate_captions(image_base64, template_match, industry, count=3):
         template_match: Template analysis result
         industry: Industry name (e.g., 'barber')
         count: Number of caption variations (default 3)
+        brief_text: Optional brief/promo text to include (e.g., "Free places for first 10")
     
     Returns:
         {"success": True, "captions": [...], "hashtags": [...]}
     """
     try:
         logger.info(f"📸 Generating {count} captions with Claude...")
+        if brief_text:
+            logger.info(f"📝 Including brief text: {brief_text}")
         
         # Strip data URL prefix if present
         if image_base64 and ',' in image_base64:
@@ -147,13 +150,15 @@ Hashtags: Use industry-specific relevant tags."""
         key_elements = template_match.get('key_elements', [])
         
         # Build prompt
+        brief_instruction = f"\n\nIMPORTANT PROMOTION TO INCLUDE: {brief_text}\nMake sure to naturally incorporate this offer into each caption." if brief_text else ""
+        
         prompt = f"""{industry_context}
 
 Analyze this image and generate {count} UNIQUE social media caption variations.
 
 Image context:
 - Scene type: {scene_type}
-- Key elements: {', '.join(key_elements) if key_elements else 'Various elements visible'}
+- Key elements: {', '.join(key_elements) if key_elements else 'Various elements visible'}{brief_instruction}
 
 Each caption should:
 1. Be 2-4 sentences (Instagram/Facebook length)
@@ -161,6 +166,7 @@ Each caption should:
 3. Reference the image content naturally
 4. End with a call-to-action or question
 5. Include 5-8 relevant hashtags
+6. {f'NATURALLY incorporate the promotion: "{brief_text}"' if brief_text else 'Be engaging and shareable'}
 
 Respond ONLY with valid JSON in this exact format:
 {{
@@ -361,7 +367,8 @@ class MCPHandler(BaseHTTPRequestHandler):
                     image_base64=data.get('image_base64'),
                     template_match=data.get('template_match', {}),
                     industry=data.get('industry', 'barber'),
-                    count=data.get('count', 3)
+                    count=data.get('count', 3),
+                    brief_text=data.get('brief_text')  # Pass brief text
                 )
             elif self.path == '/template/match':
                 logger.info("🔍 Matching template...")
