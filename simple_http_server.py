@@ -161,10 +161,11 @@ Hashtags: Use industry-specific relevant tags."""
 🚨🚨🚨 CRITICAL REQUIREMENT - DO NOT IGNORE:
 You MUST include this EXACT promotion in EVERY caption: "{brief_text}"
 
-Write the promotion naturally into each caption - make it the call-to-action or exciting news at the end.
-Example integration: "Ready to start? {brief_text} - DM us now!"
+Write the promotion naturally into each caption - make it the OPENING HOOK at the START.
+Example integration: "{brief_text} - that's right, we're looking for dedicated students..."
 
 DO NOT write generic captions. DO NOT forget the promotion. EVERY caption MUST include: {brief_text}
+DO NOT put the promotion at the end - it MUST be in the first sentence to avoid truncation.
 """
         
         prompt = f"""{industry_context}
@@ -176,11 +177,12 @@ Image context:
 - Key elements: {', '.join(key_elements) if key_elements else 'Various elements visible'}
 
 CAPTION REQUIREMENTS (MANDATORY):
-1. Length: 2-4 sentences, 40-80 words EACH (do NOT truncate - write complete captions)
-2. Structure: Hook → Image reference → Call-to-action
-3. {f'PROMOTION (REQUIRED): Include "{brief_text}" naturally in EVERY caption' if brief_text else 'Call-to-action: End with engaging question or CTA'}
+1. Length: 1-2 sentences, 25-40 words EACH (MUST fit under 150 characters to leave room for hashtags)
+2. Structure: Hook with promotion → Brief image reference → Short CTA
+3. PROMOTION (REQUIRED): Include "{brief_text}" in the FIRST sentence as the opening hook
 4. Hashtags: 5-8 relevant barber hashtags
 5. Make each caption DISTINCT - different hooks, different CTAs, different angles
+6. TOTAL caption + hashtags must be under 280 characters
 
 RESPONSE FORMAT - JSON ONLY:
 {{
