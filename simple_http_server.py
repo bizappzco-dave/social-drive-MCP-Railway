@@ -103,7 +103,7 @@ def decode_base64_image(base64_string):
         return None
 
 
-def generate_captions(image_base64, template_match, industry, count=3, brief_text=None):
+def generate_captions(image_base64, template_match, industry, count=3, brief_text=None, prefix_text=None, additional_context=None):
     """Generate caption variations using Claude API
     
     Args:
@@ -112,6 +112,8 @@ def generate_captions(image_base64, template_match, industry, count=3, brief_tex
         industry: Industry name (e.g., 'barber')
         count: Number of caption variations (default 3)
         brief_text: Optional brief/promo text to include (e.g., "Free places for first 10")
+        prefix_text: Optional text to start every caption (e.g., "🚨 FLASH SALE:")
+        additional_context: Optional extra context for AI (e.g., "Focus on quality training")
     
     Returns:
         {"success": True, "captions": [...], "hashtags": [...]}
@@ -119,10 +121,16 @@ def generate_captions(image_base64, template_match, industry, count=3, brief_tex
     try:
         logger.info(f"📸 Generating {count} captions with Claude...")
         logger.info(f"📝 brief_text received: {brief_text!r}")
+        logger.info(f"📝 prefix_text received: {prefix_text!r}")
+        logger.info(f"📝 additional_context received: {additional_context!r}")
         logger.info(f"📝 brief_text type: {type(brief_text)}")
         logger.info(f"📝 brief_text truthy: {bool(brief_text)}")
         if brief_text:
             logger.info(f"📝 Including brief text: {brief_text}")
+        if prefix_text:
+            logger.info(f"📝 Including prefix: {prefix_text}")
+        if additional_context:
+            logger.info(f"📝 Including additional context: {additional_context}")
         else:
             logger.warning("⚠️ NO BRIEF TEXT PROVIDED - captions will be generic!")
         
@@ -156,6 +164,9 @@ Hashtags: Use industry-specific relevant tags."""
         
         # Build prompt - brief text MUST be at the START (Claude pays more attention to beginning)
         brief_instruction = ""
+        prefix_instruction = ""
+        context_instruction = ""
+        
         if brief_text:
             brief_instruction = f"""
 🚨🚨🚨 CRITICAL REQUIREMENT - DO NOT IGNORE:
@@ -168,8 +179,25 @@ DO NOT write generic captions. DO NOT forget the promotion. EVERY caption MUST i
 DO NOT put the promotion at the end - it MUST be in the first sentence to avoid truncation.
 """
         
+        if prefix_text:
+            prefix_instruction = f"""
+📌 PREFIX REQUIREMENT:
+EVERY caption MUST start with this exact text: "{prefix_text}"
+Place this BEFORE everything else (including the brief text).
+Example: "{prefix_text} {brief_text} - that's right..."
+"""
+        
+        if additional_context:
+            context_instruction = f"""
+🧠 ADDITIONAL CONTEXT:
+Keep this in mind when writing captions: {additional_context}
+Incorporate this naturally into the captions where relevant.
+"""
+        
         prompt = f"""{industry_context}
 {brief_instruction}
+{prefix_instruction}
+{context_instruction}
 Analyze this image and generate EXACTLY {count} UNIQUE social media caption variations.
 
 Image context:
@@ -380,14 +408,18 @@ class MCPHandler(BaseHTTPRequestHandler):
             # Route requests
             if self.path == '/generate-captions':
                 brief_text = data.get('brief_text')
-                logger.info(f"🎨 Generating captions... brief_text={brief_text!r}")
+                prefix_text = data.get('prefix_text')
+                additional_context = data.get('additional_context')
+                logger.info(f"🎨 Generating captions... brief_text={brief_text!r}, prefix_text={prefix_text!r}, additional_context={additional_context!r}")
                 logger.info(f"📝 Request data keys: {list(data.keys())}")
                 result = generate_captions(
                     image_base64=data.get('image_base64'),
                     template_match=data.get('template_match', {}),
                     industry=data.get('industry', 'barber'),
                     count=data.get('count', 3),
-                    brief_text=brief_text
+                    brief_text=brief_text,
+                    prefix_text=prefix_text,
+                    additional_context=additional_context
                 )
             elif self.path == '/template/match':
                 logger.info("🔍 Matching template...")
