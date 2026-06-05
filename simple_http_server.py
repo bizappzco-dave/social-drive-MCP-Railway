@@ -414,7 +414,8 @@ class MCPHandler(BaseHTTPRequestHandler):
                 "status": "healthy",
                 "llm_provider": "Claude API",
                 "model": MODEL,
-                "api_key_configured": bool(ANTHROPIC_API_KEY)
+                "api_key_configured": bool(ANTHROPIC_API_KEY),
+                "version": "86a36fb-debug"
             }
             self.send_response(200)
         else:
