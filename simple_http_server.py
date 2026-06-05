@@ -103,7 +103,7 @@ def decode_base64_image(base64_string):
         return None
 
 
-def generate_captions(image_base64, template_match, industry, count=3, brief_text=None, prefix_text=None, additional_context=None):
+def generate_captions(image_base64, template_match, industry, count=3, start_text=None, additional_context=None):
     """Generate caption variations using Claude API
     
     Args:
@@ -111,8 +111,7 @@ def generate_captions(image_base64, template_match, industry, count=3, brief_tex
         template_match: Template analysis result
         industry: Industry name (e.g., 'barber')
         count: Number of caption variations (default 3)
-        brief_text: Optional brief/promo text to include (e.g., "Free places for first 10")
-        prefix_text: Optional text to start every caption (e.g., "🚨 FLASH SALE:")
+        start_text: Text to start every caption (e.g., "🚨 FLASH SALE: Free cuts this week")
         additional_context: Optional extra context for AI (e.g., "Focus on quality training")
     
     Returns:
@@ -120,19 +119,14 @@ def generate_captions(image_base64, template_match, industry, count=3, brief_tex
     """
     try:
         logger.info(f"📸 Generating {count} captions with Claude...")
-        logger.info(f"📝 brief_text received: {brief_text!r}")
-        logger.info(f"📝 prefix_text received: {prefix_text!r}")
+        logger.info(f"📝 start_text received: {start_text!r}")
         logger.info(f"📝 additional_context received: {additional_context!r}")
-        logger.info(f"📝 brief_text type: {type(brief_text)}")
-        logger.info(f"📝 brief_text truthy: {bool(brief_text)}")
-        if brief_text:
-            logger.info(f"📝 Including brief text: {brief_text}")
-        if prefix_text:
-            logger.info(f"📝 Including prefix: {prefix_text}")
+        if start_text:
+            logger.info(f"📝 Including start text: {start_text}")
         if additional_context:
             logger.info(f"📝 Including additional context: {additional_context}")
         else:
-            logger.warning("⚠️ NO BRIEF TEXT PROVIDED - captions will be generic!")
+            logger.warning("⚠️ NO START TEXT PROVIDED - captions will be generic!")
         
         # Strip data URL prefix if present
         if image_base64 and ',' in image_base64:
@@ -162,29 +156,19 @@ Hashtags: Use industry-specific relevant tags."""
         scene_type = template_match.get('scene_type', 'general')
         key_elements = template_match.get('key_elements', [])
         
-        # Build prompt - brief text MUST be at the START (Claude pays more attention to beginning)
-        brief_instruction = ""
-        prefix_instruction = ""
+        # Build prompt - start_text MUST be at the START (Claude pays more attention to beginning)
+        start_instruction = ""
         context_instruction = ""
         
-        if brief_text:
-            brief_instruction = f"""
+        if start_text:
+            start_instruction = f"""
 🚨🚨🚨 CRITICAL REQUIREMENT - DO NOT IGNORE:
-You MUST include this EXACT promotion in EVERY caption: "{brief_text}"
+EVERY caption MUST start with this exact text: "{start_text}"
 
-Write the promotion naturally into each caption - make it the OPENING HOOK at the START.
-Example integration: "{brief_text} - that's right, we're looking for dedicated students..."
+Place this at the VERY BEGINNING of each caption - before any other content.
+Example: "{start_text} This is what professional training looks like..."
 
-DO NOT write generic captions. DO NOT forget the promotion. EVERY caption MUST include: {brief_text}
-DO NOT put the promotion at the end - it MUST be in the first sentence to avoid truncation.
-"""
-        
-        if prefix_text:
-            prefix_instruction = f"""
-📌 PREFIX REQUIREMENT:
-EVERY caption MUST start with this exact text: "{prefix_text}"
-Place this BEFORE everything else (including the brief text).
-Example: "{prefix_text} {brief_text} - that's right..."
+DO NOT write generic captions. DO NOT forget the start text. EVERY caption MUST begin with: {start_text}
 """
         
         if additional_context:
@@ -195,8 +179,7 @@ Incorporate this naturally into the captions where relevant.
 """
         
         prompt = f"""{industry_context}
-{brief_instruction}
-{prefix_instruction}
+{start_instruction}
 {context_instruction}
 Analyze this image and generate EXACTLY {count} UNIQUE social media caption variations.
 
@@ -206,21 +189,20 @@ Image context:
 
 CAPTION REQUIREMENTS (MANDATORY):
 1. Length: 3-5 sentences, 60-100 words (Instagram supports 2,200 chars - aim for 400-600 for engagement)
-2. Structure: FIRST 125 chars must include hook + "{brief_text}" (before "more" cutoff), then expand with story/context
-3. PROMOTION (REQUIRED): Include "{brief_text}" in the FIRST sentence as the opening hook - must be visible before "more" button
-4. Hashtags: 8-12 relevant barber hashtags (place at end)
-5. Make each caption DISTINCT - different hooks, different storytelling angles
-6. Use line breaks for readability (avoid walls of text)
+2. Structure: Start with "{start_text}" then expand with story/context about the image
+3. Hashtags: 8-12 relevant barber hashtags (place at end)
+4. Make each caption DISTINCT - different hooks, different storytelling angles
+5. Use line breaks for readability (avoid walls of text)
 
 RESPONSE FORMAT - JSON ONLY:
 {{
   "captions": [
-    {{"caption": "COMPLETE caption text here - do not truncate", "hashtags": ["#tag1", "#tag2"]}},
+    {{"caption": "COMPLETE caption text here - start with {start_text}", "hashtags": ["#tag1", "#tag2"]}},
     {{"caption": "Another COMPLETE caption", "hashtags": ["#tag3", "#tag4"]}}
   ]
 }}
 
-⚠️ IMPORTANT: Write COMPLETE captions. Do NOT use "..." or truncate. Do NOT write generic captions. {f'Include "{brief_text}" in EVERY caption.' if brief_text else ''}
+⚠️ IMPORTANT: Write COMPLETE captions. Do NOT use "..." or truncate. Do NOT write generic captions. {f'Every caption MUST start with: {start_text}' if start_text else ''}
 
 Respond ONLY with the JSON. No markdown. No explanations."""
         
@@ -407,18 +389,16 @@ class MCPHandler(BaseHTTPRequestHandler):
             
             # Route requests
             if self.path == '/generate-captions':
-                brief_text = data.get('brief_text')
-                prefix_text = data.get('prefix_text')
+                start_text = data.get('start_text')
                 additional_context = data.get('additional_context')
-                logger.info(f"🎨 Generating captions... brief_text={brief_text!r}, prefix_text={prefix_text!r}, additional_context={additional_context!r}")
+                logger.info(f"🎨 Generating captions... start_text={start_text!r}, additional_context={additional_context!r}")
                 logger.info(f"📝 Request data keys: {list(data.keys())}")
                 result = generate_captions(
                     image_base64=data.get('image_base64'),
                     template_match=data.get('template_match', {}),
                     industry=data.get('industry', 'barber'),
                     count=data.get('count', 3),
-                    brief_text=brief_text,
-                    prefix_text=prefix_text,
+                    start_text=start_text,
                     additional_context=additional_context
                 )
             elif self.path == '/template/match':
